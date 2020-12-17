@@ -1,37 +1,28 @@
 # -*- coding: utf-8 -*-
-import time
-import os
-import tarfile
-import requests
-import numpy as np
-import pandas as pd
-import datashader as ds
-import datashader.transfer_functions as tf
-
+import cupy
+import cudf
+import dash_leaflet as dl
+import dask_cudf
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
-from dash.dependencies import Input, Output, State
-import dash_daq as daq
-from plotly.colors import sequential
-import plotly.express as px
-from pyproj import Transformer
-
-from dask import delayed
-from distributed import Client
-from dask_cuda import LocalCUDACluster
-
-import dash_leaflet as dl
-import dash_leaflet.express as dlx
-from dash_extensions.javascript import Namespace, arrow_function
-
-import cudf
-import dask_cudf
-import cupy
-
-from utils import get_nearest_polygons_from_selected_point, get_data
 import json
+import numpy as np
+import os
+import pandas as pd
+import plotly.express as px
+import requests
+import time
+import tarfile
+
+from dash_extensions.javascript import Namespace
+from dash.dependencies import Input, Output
+from plotly.colors import sequential
+from pyproj import Transformer
+from dask import delayed
+
+from utils import get_nearest_polygons_from_selected_point
 
 # Disable cupy memory pool so that cupy immediately releases GPU memory
 cupy.cuda.set_allocator(None)
@@ -284,7 +275,7 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], external_
 app.layout = html.Div(children=[
     html.Div([
         html.H1(children=[
-            'Census 2010 Visualization',
+            'Census 2010 + Spatial Querying Dashboard',
             html.A(
                 html.Img(
                     src="assets/rapids-logo.png",
@@ -462,11 +453,11 @@ app.layout = html.Div(children=[
             dcc.Markdown('''\
 **Important Data Caveats:** Geospatially filtered data will show accurate distribution, but due to anonymized, multiple cross filtered distributions will not return meaningful results. See [FAQ](https://github.com/rapidsai/plotly-dash-rapids-census-demo/tree/master#faq-and-known-issues) fore details.
 - 2010 Population Census and 2018 ACS data used with permission from IPUMS NHGIS, University of Minnesota, [www.nhgis.org](https://www.nhgis.org/) ( not for redistribution ).
-- Base map layer provided by [Mapbox](https://www.mapbox.com/).
+- Base map layer provided by [Jawg](https://www.jawg.io/).
 - Dashboard developed with [Plot.ly Dash](https://plotly.com/dash/).
-- Geospatial point rendering developed with [Datashader](https://datashader.org/).
-- GPU toggle accelerated with [RAPIDS cudf](https://rapids.ai/) and [cupy](https://cupy.chainer.org/), CPU toggle with [pandas](https://pandas.pydata.org/).
-- For source code and data workflow, visit our [GitHub](https://github.com/rapidsai/plotly-dash-rapids-census-demo/tree/master).
+- Geospatial point rendering developed with [dash-leaflet](https://dash-leaflet.herokuapp.com/).
+- GPU accelerated with [RAPIDS cudf](https://rapids.ai/) and [cupy](https://cupy.chainer.org/)
+- For source code and data workflow, visit our [GitHub](https://github.com/AjayThorve/Spatial-Analytics-Viz).
 '''),
         ],
         style={
