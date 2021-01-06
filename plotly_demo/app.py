@@ -184,21 +184,6 @@ mappings['income'] = {
 data_center_3857, data_3857, data_4326, data_center_4326 = [], [], [], []
 
 
-def load_dataset(path):
-    """
-    Args:
-        path: Path to arrow file containing mortgage dataset
-
-    Returns:
-        pandas DataFrame
-    """
-    if os.path.isdir(path):
-        path = path + '/*'
-    df_d = dask_cudf.read_parquet(path)
-    # df_d['sex'] = df_d.sex.to_pandas().astype('category')
-    return df_d
-
-
 def set_projection_bounds(df_d):
     transformer_4326_to_3857 = Transformer.from_crs("epsg:4326", "epsg:3857")
 
@@ -904,9 +889,9 @@ def load_datasets():
     edges_path = "../data/us-edges.parquet"
 
     # cudf DataFrame
-    census_data = load_dataset(data_path)
-    cudf_nodes = load_dataset(nodes_path).compute()
-    cudf_edges = load_dataset(edges_path).compute()
+    census_data = dask_cudf.read_parquet(data_path)
+    cudf_nodes = cudf.read_parquet(nodes_path)
+    cudf_edges = cudf.read_parquet(edges_path)
 
 
 def server():

@@ -50,6 +50,46 @@ def getLocation(lat1, lon1, brng, distanceMiles):
     return lat2, lon2
 
 
+def get_updated_df_quadtree_pip(lat, lon, nodes_df):
+    min_x, min_y, max_x, max_y = (nodes_df["x"].min(),
+                                  nodes_df["y"].min(),
+                                  nodes_df["x"].max(),
+                                  nodes_df["y"].max())
+    max_depth = 6
+    min_size = 50
+    scale = max(max_x - min_x, max_y - min_y) // (1 << max_depth)
+    point_indices, quadtree = cuspatial.quadtree_on_points(
+        nodes_df.x,
+        nodes_df.y,
+        min_x,
+        max_x,
+        min_y,
+        max_y,
+        scale,
+        max_depth,
+        min_size,
+    )
+    poly_offsets, ring_offsets = cudf.Series([0], index=["selection"]),[0]
+    poly_bboxes = cuspatial.polygon_bounding_boxes(
+        poly_offsets, ring_offsets, lat, lon,
+    )
+    intersections = cuspatial.join_quadtree_and_bounding_boxes(
+        quadtree, poly_bboxes, min_x, max_x, min_y, max_y, scale, max_depth,
+    )
+    polygons_and_points = cuspatial.quadtree_point_in_polygon(
+        intersections,
+        quadtree,
+        point_indices,
+        nodes_df.x,
+        nodes_df.y,
+        poly_offsets,
+        ring_offsets,
+        lat,
+        lon,
+    )
+    return nodes_df.loc[polygons_and_points.point_index]
+
+
 def get_updated_df(lat, lon, nodes_df):
     results = cuspatial.point_in_polygon(
         nodes_df.x, nodes_df.y, cudf.Series([0], index=["selection"]),
@@ -59,10 +99,11 @@ def get_updated_df(lat, lon, nodes_df):
 
 
 def get_updated_edges(nodes, edges):
-    indices = cudf.logical_and(
-        edges.src.isin(nodes.vertex), edges.dst.isin(nodes.vertex),
-    )
-    return edges[indices]
+    return edges.merge(nodes, left_on="src", right_on="vertex")[
+        ['src', 'dst', 'length']
+    ].merge(nodes, left_on="dst", right_on="vertex")[['src', 'dst', 'length']]
+
+
 
 
 def get_shortest_paths(edges_df, point_of_interest):
@@ -161,6 +202,7 @@ def get_nearest_polygons_from_selected_point(
         point_lat, point_lon, distanceInMiles
     )
     nodes = get_updated_df(lat, lon, nodes_df)
+
     edges = get_updated_edges(nodes, edges_df)
     times.append(time.time())
 
