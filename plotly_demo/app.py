@@ -882,7 +882,7 @@ cudf_edges = None
 def load_datasets():
     global census_data, cudf_nodes, cudf_edges
     census_data_url = 'https://s3.us-east-2.amazonaws.com/rapidsai-data/viz-data/census_data.parquet.tar.gz'
-    data_path = "../../plotly/plotly-dash-rapids-census-demo/data/census_data.parquet"
+    data_path = "../data/census_data.parquet"
     check_dataset(census_data_url, data_path)
 
     nodes_path = "../data/us-nodes.parquet"
