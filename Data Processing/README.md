@@ -6,7 +6,7 @@ The data us-streets(nodes and edges), can be manually downloaded from [here](htt
 
 Steps to reproduce dataset generation: 
 
-> Warning: Downloading each state individually and processing it in memory could take a lot of hours. We do however save each state individually, so if the script terminates for some reason, rerunning it would continue data loading for only the remaining steps.
+> Warning: Downloading each state individually and processing it in memory could take a lot of hours. We do however save each state individually, so if the script terminates for some reason, rerunning it would continue data loading for only the remaining states.
 
 ```bash
 # multiple instances of the script can also be run together, for parallel processing
