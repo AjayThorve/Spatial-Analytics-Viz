@@ -4,9 +4,9 @@ For generating the US-street map data, we use the Open Street Maps api to downlo
 
 The data us-streets(nodes and edges), can be manually downloaded from [here](https://drive.google.com/file/d/1FiKczglJaLmLjYNCjuTVd11JxpglKA63/view?usp=sharing) (Nvidia email access required).
 
-Steps to reproduce data loading 
+Steps to reproduce dataset generation: 
 
-> Warning: Download each state individually and processing it in memory could take a lot of hours. We do however save each state individually, so if the script terminates for some reason, rerunning it would continue data loading for only the remaining steps.
+> Warning: Downloading each state individually and processing it in memory could take a lot of hours. We do however save each state individually, so if the script terminates for some reason, rerunning it would continue data loading for only the remaining steps.
 
 ```bash
 # multiple instances of the script can also be run together, for parallel processing
