@@ -5,7 +5,10 @@ __pycache__/
 
 # C extensions
 *.so
-
+*.parquet
+*.pbf
+*.bat
+*sql
 # Distribution / packaging
 .Python
 build/
