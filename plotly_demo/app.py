@@ -275,8 +275,8 @@ app.layout = html.Div(children=[
                 className='eight columns pretty_container', id="pipeline-div"),
         ]),
         html.Div(children=[
-            html.Button("Clear Selection", id='reset-map',
-                        className='reset-button'),
+            # html.Button("Clear Selection", id='reset-map',
+            #             className='reset-button'),
             html.H4([
                 "Population Distribution of Individuals",
             ], className="container_title"),
@@ -343,10 +343,6 @@ app.layout = html.Div(children=[
         html.Div(children=[
             html.Div(
                 children=[
-                    html.Button(
-                        "Clear Selection", id='clear-education',
-                        className='reset-button'
-                    ),
                     html.H4([
                         "Education Distribution",
                     ], className="container_title"),
@@ -365,10 +361,6 @@ app.layout = html.Div(children=[
         html.Div(children=[
             html.Div(
                 children=[
-                    html.Button(
-                        "Clear Selection", id='clear-income',
-                        className='reset-button'
-                    ),
                     html.H4([
                         "Income Distribution",
                     ], className="container_title"),
@@ -386,10 +378,6 @@ app.layout = html.Div(children=[
         html.Div(children=[
             html.Div(
                 children=[
-                    html.Button(
-                        "Clear Selection", id='clear-cow',
-                        className='reset-button'
-                    ),
                     html.H4([
                         "Class of Workers Distribution",
                     ], className="container_title"),
@@ -408,10 +396,6 @@ app.layout = html.Div(children=[
         html.Div(children=[
             html.Div(
                 children=[
-                    html.Button(
-                        "Clear Selection", id='clear-age',
-                        className='reset-button'
-                    ),
                     html.H4([
                         "Age Distribution",
                     ], className="container_title"),
@@ -452,12 +436,14 @@ app.layout = html.Div(children=[
 
 
 # Clear/reset button callbacks
-@app.callback(
-    Output('map-graph', 'selectedData'),
-    [Input('reset-map', 'n_clicks'), Input('clear-all', 'n_clicks')]
-)
-def clear_map(*args):
-    return None
+# clear selections results in OOM error on 24G GPU,
+# removing for now
+# @app.callback(
+#     Output("map-graph", "click_lat_lng"),
+#     [Input('reset-map', 'n_clicks')]
+# )
+# def clear_map(click):
+#     return None
 
 
 # Plot functions
