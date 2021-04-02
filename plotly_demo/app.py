@@ -19,9 +19,7 @@ import tarfile
 from dash_extensions.javascript import Namespace
 from dash.dependencies import Input, Output
 from plotly.colors import sequential
-from pyproj import Transformer
 from dask import delayed
-
 from utils import get_nearest_polygons_from_selected_point
 
 # Disable cupy memory pool so that cupy immediately releases GPU memory
@@ -58,7 +56,7 @@ if not token:
     try:
         token = open(".jawg_token").read()
     except Exception as e:
-        print('jawg token not found, using open-street-maps')
+        print('jawg token not found, using open-street-maps', e)
 
 mappings_hover['cow'] = {
     0: "Private for-profit wage and salary workers: Employee of private company workers",
@@ -82,12 +80,6 @@ mappings['cow'] = {
     6: "Self-emp non-business",
     7: "Unpaid workers",
     8: "below age 16",
-}
-
-mappings['sex'] = {
-    -1: "All genders",
-    0: 'Males',
-    1: 'Females'
 }
 
 mappings_hover['education'] = {
@@ -181,37 +173,7 @@ mappings['income'] = {
 }
 
 
-data_center_3857, data_3857, data_4326, data_center_4326 = [], [], [], []
-
-
-def set_projection_bounds(df_d):
-    transformer_4326_to_3857 = Transformer.from_crs("epsg:4326", "epsg:3857")
-
-    def epsg_4326_to_3857(coords):
-        return [transformer_4326_to_3857.transform(*reversed(row)) for row in coords]
-
-    transformer_3857_to_4326 = Transformer.from_crs("epsg:3857", "epsg:4326")
-
-    def epsg_3857_to_4326(coords):
-        return [list(reversed(transformer_3857_to_4326.transform(*row))) for row in coords]
-
-    data_3857 = (
-        [df_d.x.min(), df_d.y.min()],
-        [df_d.x.max(), df_d.y.max()]
-    )
-    data_center_3857 = [[
-        (data_3857[0][0] + data_3857[1][0]) / 2.0,
-        (data_3857[0][1] + data_3857[1][1]) / 2.0,
-    ]]
-
-    data_4326 = epsg_3857_to_4326(data_3857)
-    data_center_4326 = epsg_3857_to_4326(data_center_3857)
-
-    return data_3857, data_center_3857, data_4326, data_center_4326
-
 # Build Dash app and initial layout
-
-
 def blank_fig(height):
     """
     Build blank figure with the requested height
@@ -237,7 +199,8 @@ trip_times = [5, 10, 15, 30, 60]
 ns = Namespace("dlx", "choropleth")
 classes = [0, 1, 2, 3, 4, 5]
 colorscale = ['white']
-style = dict(weight=2, opacity=1, color='white', dashArray='3', fillOpacity=0.2)
+style = dict(
+    weight=2, opacity=1, color='white', dashArray='3', fillOpacity=0.2)
 minmax = dict(min=0, max=1)
 chroma = "https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.1.0/chroma.min.js"
 
@@ -256,7 +219,10 @@ else:
     checked_key = "matrix"
 
 
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], external_scripts=[chroma],)
+app = dash.Dash(
+    __name__, external_stylesheets=[dbc.themes.BOOTSTRAP],
+    external_scripts=[chroma]
+)
 app.layout = html.Div(children=[
     html.Div([
         html.H1(children=[
@@ -288,7 +254,9 @@ app.layout = html.Div(children=[
                         config={'displayModeBar': False},
                     ),
                 ], style={'width': '100%'}),
-            ], style={'height': f'{row_heights[3]}px', 'margin-right': '2%'}, className='four columns pretty_container', id="indicator-div"),
+            ],
+                style={'height': f'{row_heights[3]}px', 'margin-right': '2%'},
+                className='four columns pretty_container', id="indicator-div"),
         ]),
         html.Div(children=[
             html.Div(children=[
@@ -297,12 +265,14 @@ app.layout = html.Div(children=[
                 ], className="container_title"),
                 dcc.Loading([
                     dcc.Graph(
-                        id='query-time-pie',
+                        id='query-time-stacked_bar',
                         figure=blank_fig(row_heights[3]),
                         config={'displayModeBar': False},
                     ),
                 ], style={'width': '100%'}),
-            ], style={'height': f'{row_heights[3]}px'}, className='eight columns pretty_container', id="pipeline-div"),
+            ],
+                style={'height': f'{row_heights[3]}px'},
+                className='eight columns pretty_container', id="pipeline-div"),
         ]),
         html.Div(children=[
             html.Button("Clear Selection", id='reset-map',
@@ -314,32 +284,52 @@ app.layout = html.Div(children=[
                 dl.Map([
                     dl.LayersControl(
                         [
-                            dl.BaseLayer(dl.TileLayer(url=url_template.format(key), attribution=attribution),
-                            name=key, checked=key == checked_key) for key in keys] +
+                            dl.BaseLayer(dl.TileLayer(
+                                url=url_template.format(key),
+                                attribution=attribution),
+                                name=key, checked=key == checked_key)
+                            for key in keys] +
                         [
                             dl.LayerGroup(id="layer"),
-                            dl.GeoJSON(id='polygons', options=dict(style=ns("style")), hideout=dict(colorscale=colorscale, classes=classes, style=style, colorProp="index"),)
+                            dl.GeoJSON(
+                                id='polygons',
+                                options=dict(style=ns("style")),
+                                hideout=dict(
+                                    colorscale=colorscale,
+                                    classes=classes, style=style,
+                                    colorProp="index"),)
                         ]
                     ),
                 ],
-                id="map-graph", zoom=4, center=(39, -100)),
+                    id="map-graph", zoom=4, center=(39, -100)),
                 html.Div([
-                    html.H5("Average Speed", style={"color":"#191a1a"}),
+                    html.H5("Average Speed", style={"color": "#191a1a"}),
                     dcc.Dropdown(
                         id='average-speed',
-                        options=[{'label': i, 'value': i} for i in average_speeds],
+                        options=[
+                            {'label': i, 'value': i} for i in average_speeds
+                        ],
                         value=35
                     ),
-                    html.H5("Trip Time", style={"color":"#191a1a"}),
+                    html.H5("Trip Time", style={"color": "#191a1a"}),
                     dcc.Dropdown(
                         id='trip-time',
-                        options=[{'label': f"{i} minutes", 'value': i} for i in trip_times],
+                        options=[
+                            {'label': f"{i} minutes", 'value': i}
+                            for i in trip_times
+                        ],
                         value=30,
-                    )], className="info",
-                    style={"position": "relative", "bottom": "190px", "left": "10px", "z-index": "1000", "width": "400px"}
+                    )],
+                        className="info",
+                        style={
+                            "position": "relative", "bottom": "190px",
+                            "left": "10px", "z-index": "1000", "width": "400px"
+                        }
                 ),
-
-        ], style={'width': '100%', 'height': '50vh', 'margin': "auto", "display": "block", "position": "relative"}),
+            ],
+                style={
+                    'width': '100%', 'height': '50vh', 'margin': "auto",
+                    "display": "block", "position": "relative"}),
             # Hidden div inside the app that stores the intermediate value
             html.Div(id='intermediate-state-value', style={'display': 'none'})
 
@@ -354,7 +344,8 @@ app.layout = html.Div(children=[
             html.Div(
                 children=[
                     html.Button(
-                        "Clear Selection", id='clear-education', className='reset-button'
+                        "Clear Selection", id='clear-education',
+                        className='reset-button'
                     ),
                     html.H4([
                         "Education Distribution",
@@ -367,14 +358,16 @@ app.layout = html.Div(children=[
                         animate=False
                     ),
                 ],
-                style={'margin-right': '2%'}, className='six columns pretty_container', id="education-div"
+                style={'margin-right': '2%'},
+                className='six columns pretty_container', id="education-div"
             )
         ]),
         html.Div(children=[
             html.Div(
                 children=[
                     html.Button(
-                        "Clear Selection", id='clear-income', className='reset-button'
+                        "Clear Selection", id='clear-income',
+                        className='reset-button'
                     ),
                     html.H4([
                         "Income Distribution",
@@ -394,7 +387,8 @@ app.layout = html.Div(children=[
             html.Div(
                 children=[
                     html.Button(
-                        "Clear Selection", id='clear-cow', className='reset-button'
+                        "Clear Selection", id='clear-cow',
+                        className='reset-button'
                     ),
                     html.H4([
                         "Class of Workers Distribution",
@@ -407,14 +401,16 @@ app.layout = html.Div(children=[
                         animate=False
                     ),
                 ],
-                style={'margin-right': '2%'}, className='six columns pretty_container', id="cow-div"
+                style={'margin-right': '2%'},
+                className='six columns pretty_container', id="cow-div"
             )
         ]),
         html.Div(children=[
             html.Div(
                 children=[
                     html.Button(
-                        "Clear Selection", id='clear-age', className='reset-button'
+                        "Clear Selection", id='clear-age',
+                        className='reset-button'
                     ),
                     html.H4([
                         "Age Distribution",
@@ -464,80 +460,6 @@ def clear_map(*args):
     return None
 
 
-@app.callback(
-    Output('age-histogram', 'selectedData'),
-    [Input('clear-age', 'n_clicks'), Input('clear-all', 'n_clicks')]
-)
-def clear_age_hist_selections(*args):
-    return None
-
-
-@app.callback(
-    Output('education-histogram', 'selectedData'),
-    [Input('clear-education', 'n_clicks'), Input('clear-all', 'n_clicks')]
-)
-def clear_education_hist_selections(*args):
-    return None
-
-
-@app.callback(
-    Output('income-histogram', 'selectedData'),
-    [Input('clear-income', 'n_clicks'), Input('clear-all', 'n_clicks')]
-)
-def clear_income_hist_selections(*args):
-    return None
-
-
-@app.callback(
-    Output('cow-histogram', 'selectedData'),
-    [Input('clear-cow', 'n_clicks'), Input('clear-all', 'n_clicks')]
-)
-def clear_cow_hist_selections(*args):
-    return None
-
-# Query string helpers
-
-
-def bar_selection_to_query(selection, column):
-    """
-    Compute pandas query expression string for selection callback data
-
-    Args:
-        selection: selectedData dictionary from Dash callback on a bar trace
-        column: Name of the column that the selected bar chart is based on
-
-    Returns:
-        String containing a query expression compatible with DataFrame.query. This
-        expression will filter the input DataFrame to contain only those rows that
-        are contained in the selection.
-    """
-    point_inds = [p['label'] for p in selection['points']]
-    xmin = min(point_inds)  # bin_edges[min(point_inds)]
-    xmax = max(point_inds) + 1  # bin_edges[max(point_inds) + 1]
-    xmin_op = "<="
-    xmax_op = "<="
-    return f"{xmin} {xmin_op} {column} and {column} {xmax_op} {xmax}"
-
-
-def build_query(selections, exclude=None):
-    """
-    Build pandas query expression string for cross-filtered plot
-
-    Args:
-        selections: Dictionary from column name to query expression
-        exclude: If specified, column to exclude from combined expression
-
-    Returns:
-        String containing a query expression compatible with DataFrame.query.
-    """
-    other_selected = {sel for c, sel in selections.items() if (
-        c != exclude and sel != -1)}
-    if other_selected:
-        return ' and '.join(other_selected)
-    else:
-        return None
-
-
 # Plot functions
 def build_colorscale(colorscale_name, transform):
     """
@@ -565,24 +487,6 @@ def build_colorscale(colorscale_name, transform):
     else:
         raise ValueError("Unexpected colorscale transform")
     return [(v, clr) for v, clr in zip(scale_values, colors_temp)]
-
-
-def query_df_range(df, col, x0, x1):
-    mask_ = (df[col] >= x0) & (df[col] < x1)
-    if(mask_.sum() != len(df)):
-        df = df[mask_]
-        df.index = cudf.core.RangeIndex(0, len(df))
-    del(mask_)
-    return df
-
-
-def query_df_range_lat_lon(df, x0, x1, y0, y1, x, y):
-    mask_ = (df[x] >= x0) & (df[x] <= x1) & (df[y] <= y0) & (df[y] >= y1)
-    if(mask_.sum() != len(df)):
-        df = df[mask_]
-        df.index = cudf.core.RangeIndex(0, len(df))
-    del(mask_)
-    return df
 
 
 def build_histogram_default_bins(
@@ -624,9 +528,6 @@ def build_histogram_default_bins(
             'ticktext': list(mappings[column].values())
         }
 
-    # color_scale = build_colorscale(colorscale_name, colorscale_transform)
-
-    # centers = (bin_edges[:-1] + bin_edges[1:]) / 2.0
     if orientation == 'h':
         fig = {
             'data': [{
@@ -726,7 +627,7 @@ def build_updated_figures(
     )
 
 
-def get_pie(times, colorscale_name):
+def get_stacked_bar(times, colorscale_name):
     query_pipeline = [
         'filter us-street graph by a 30 mile radius',
         'compute nearest node to selected point',
@@ -748,14 +649,15 @@ def get_pie(times, colorscale_name):
     fig.layout.legend.title = ''
     fig.layout.bargap = 0.3
     for i in fig.data:
-        i.hovertemplate = '<b>%{hovertext}</b><br>query_time=%{x} seconds<extra></extra>'
+        i.hovertemplate = (
+            '<b>%{hovertext}</b><br>query_time=%{x} seconds<extra></extra>')
     return fig
 
 
 @app.callback(
     [
         Output('indicator-graph', 'figure'),
-        Output('query-time-pie', 'figure'),
+        Output('query-time-stacked_bar', 'figure'),
         Output("layer", "children"), Output("polygons", "data"),
 
         Output('education-histogram', 'figure'),
@@ -782,10 +684,15 @@ def update_plots(
 
     if click_lat_lng is not None:
         lat, lon = click_lat_lng
-        marker = dl.Marker(position=click_lat_lng, children=dl.Tooltip("({:.3f}, {:.3f})".format(*click_lat_lng)))
+        marker = dl.Marker(
+            position=click_lat_lng, children=dl.Tooltip(
+                "({:.3f}, {:.3f})".format(*click_lat_lng)
+            )
+        )
 
         polygons, df, times = get_nearest_polygons_from_selected_point(
-            lat, lon, average_speed, trip_time, cudf_nodes, cudf_edges, census_data
+            lat, lon, average_speed, trip_time, cudf_nodes, cudf_edges,
+            census_data
         )
         polygon_data = json.loads(polygons.to_json())
     else:
@@ -794,7 +701,8 @@ def update_plots(
 
     if df is None:
         len_df = len(census_data)
-        figures = delayed(build_updated_figures)(census_data, colorscale_name).compute()
+        figures = delayed(build_updated_figures)(
+            census_data, colorscale_name).compute()
 
     else:
         len_df = len(df)
@@ -808,7 +716,8 @@ def update_plots(
 
         'modeBarButtonsToRemove': [
             'zoom2d', 'pan2d', 'select2d', 'lasso2d', 'zoomIn2d', 'zoomOut2d',
-            'resetScale2d', 'hoverClosestCartesian', 'hoverCompareCartesian', 'toggleSpikelines'
+            'resetScale2d', 'hoverClosestCartesian', 'hoverCompareCartesian',
+            'toggleSpikelines'
         ]
     }
     n_selected_indicator = {
@@ -835,13 +744,13 @@ def update_plots(
     compute_time = round(time.time() - t0, 4)
     print(f"Update time: {compute_time}")
     np.append(times, [compute_time - np.sum(times)])
-    query_time_pie = get_pie(
+    query_time_stacked_bar = get_stacked_bar(
         np.append(times, [compute_time - np.sum(times)]), colorscale_name
     )
 
     return (
         n_selected_indicator,
-        query_time_pie,
+        query_time_stacked_bar,
         marker, polygon_data,
         education_histogram, income_histogram, cow_histogram, age_histogram,
         barchart_config, barchart_config, barchart_config, barchart_config
