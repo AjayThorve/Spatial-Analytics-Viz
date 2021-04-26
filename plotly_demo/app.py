@@ -31,13 +31,13 @@ text_color = "#cfd8dc"  # Material blue-grey 100
 mapbox_land_color = "#343332"
 
 # Figure template
-row_heights = [150, 440, 250, 210]
+row_heights = [125, 375, 225, 225]
 template = {
     'layout': {
         'paper_bgcolor': bgcolor,
         'plot_bgcolor': bgcolor,
         'font': {'color': text_color},
-        "margin": {"r": 0, "t": 30, "l": 0, "b": 20},
+        "margin": {"r": 10, "t": 20, "l": 10, "b": 10},
         'bargap': 0.05,
         'xaxis': {'showgrid': False, 'automargin': True},
         'yaxis': {'showgrid': True, 'automargin': True},
@@ -65,7 +65,7 @@ mappings_hover['cow'] = {
     5: "Federal government workers",
     6: "Self-employed in own not incorporated business workers",
     7: "Unpaid family workers",
-    8: "Data not available/under 16 years",
+    8: "Data not available",
 }
 
 mappings['cow'] = {
@@ -77,7 +77,7 @@ mappings['cow'] = {
     5: "Federal gov emp",
     6: "Self-emp non-business",
     7: "Unpaid workers",
-    8: "below age 16",
+    8: "untracked",
 }
 
 mappings_hover['education'] = {
@@ -97,7 +97,7 @@ mappings_hover['education'] = {
     13: "Master's degree",
     14: "Professional school degree",
     15: "Doctorate degree",
-    16: 'below 16 years/data not available'
+    16: 'untracked'
 }
 
 
@@ -118,7 +118,7 @@ mappings['education'] = {
     13: "Master's",
     14: "Prof. school",
     15: "Doctorate",
-    16: 'below age 16'
+    16: 'untracked'
 }
 
 
@@ -143,7 +143,7 @@ mappings_hover['income'] = {
     17: "$65,000 to $74,999",
     18: "$75,000 to $99,999",
     19: "$100,000 or more",
-    20: 'below 25 years/unknown',
+    20: 'untracked',
 }
 
 mappings['income'] = {
@@ -167,7 +167,7 @@ mappings['income'] = {
     17: "$74,999",
     18: "$99,999",
     19: "$100,000+",
-    20: 'below age 25',
+    20: 'untracked',
 }
 
 
@@ -191,8 +191,8 @@ def blank_fig(height):
     }
 
 
-average_speeds = [25, 35, 45, 60]
-trip_times = [5, 10, 15, 30, 60]
+average_speeds = [25, 35, 45, 65]
+trip_times = [5, 10, 15, 20, 30]
 
 ns = Namespace("dlx", "choropleth")
 classes = [0, 1, 2, 3, 4, 5]
@@ -224,7 +224,7 @@ app = dash.Dash(
 app.layout = html.Div(children=[
     html.Div([
         html.H1(children=[
-            'Census 2010 + Spatial Querying Dashboard',
+            'Drive Time Spatial Querying Dashboard',
             html.A(
                 html.Img(
                     src="assets/rapids-logo.png",
@@ -276,7 +276,7 @@ app.layout = html.Div(children=[
             # html.Button("Clear Selection", id='reset-map',
             #             className='reset-button'),
             html.H4([
-                "Population Distribution of Individuals",
+                "Population and Road Distribution | Click to Start",
             ], className="container_title"),
             html.Div([
                 dl.Map([
@@ -321,7 +321,9 @@ app.layout = html.Div(children=[
                         className="info",
                         style={
                             "position": "relative", "bottom": "190px",
-                            "left": "10px", "z-index": "1000", "width": "400px"
+                            "left": "10px", "z-index": "1000", "width": "400px",
+                            "padding-bottom": "10px",
+                            "padding-top": "10px"
                         }
                 ),
             ],
@@ -419,7 +421,7 @@ app.layout = html.Div(children=[
 - Base map layer provided by [Jawg](https://www.jawg.io/).
 - Dashboard developed with [Plot.ly Dash](https://plotly.com/dash/).
 - Geospatial point rendering developed with [dash-leaflet](https://dash-leaflet.herokuapp.com/).
-- GPU accelerated with [RAPIDS cudf](https://rapids.ai/) and [cupy](https://cupy.chainer.org/)
+- GPU accelerated with [RAPIDS](https://rapids.ai/).
 - For source code and data workflow, visit our [GitHub](https://github.com/AjayThorve/Spatial-Analytics-Viz).
 '''),
         ],
@@ -533,8 +535,7 @@ def build_histogram_default_bins(
                 'yaxis': {
                     **xaxis_labels
                 },
-                'selectdirection': 'v',
-                'dragmode': 'select',
+                'dragmode': 'pan',
                 'template': template,
                 'uirevision': True,
                 'hovermode': 'closest'
@@ -561,8 +562,7 @@ def build_histogram_default_bins(
                 'xaxis': {
                     **xaxis_labels
                 },
-                'selectdirection': 'h',
-                'dragmode': 'select',
+                'dragmode': 'pan',
                 'template': template,
                 'uirevision': True,
                 'hovermode': 'closest'
@@ -624,12 +624,12 @@ def get_stacked_bar(times, colorscale_name):
     fig = px.bar(
         df, y='idx', x='query_time', color='query_type', orientation='h',
         color_discrete_sequence=getattr(sequential, colorscale_name),
-        height=row_heights[3]-50, hover_name="query_type",
+        height=row_heights[3]-60, hover_name="query_type",
         template=template
     )
     fig.update_layout(hovermode='closest')
     fig.layout.yaxis.visible = False
-    fig.layout.xaxis.title = 'seconds'
+    fig.layout.xaxis.title = ''
     fig.layout.legend.title = ''
     fig.layout.bargap = 0.3
     for i in fig.data:
@@ -697,7 +697,6 @@ def update_plots(
 
     barchart_config = {
         'displayModeBar': True,
-
         'modeBarButtonsToRemove': [
             'zoom2d', 'pan2d', 'select2d', 'lasso2d', 'zoomIn2d', 'zoomOut2d',
             'resetScale2d', 'hoverClosestCartesian', 'hoverCompareCartesian',
@@ -714,7 +713,7 @@ def update_plots(
             'number': {
                 'font': {
                     'color': text_color,
-                    'size': '15px'
+                    'size': '24px'
                 },
                 "valueformat": ","
             }
