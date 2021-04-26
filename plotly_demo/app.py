@@ -47,8 +47,6 @@ template = {
     }
 }
 
-colors = {}
-colors['sex'] = ['#0d47a1', '#80e878']
 
 mappings = {}
 mappings_hover = {}
@@ -551,7 +549,7 @@ def build_colorscale(colorscale_name, transform):
     Returns:
         Plotly color scale list
     """
-    global colors, mappings
+    global mappings
 
     colors_temp = getattr(sequential, colorscale_name)
     if transform == "linear":
