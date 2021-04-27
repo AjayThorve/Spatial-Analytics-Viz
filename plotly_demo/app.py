@@ -224,7 +224,7 @@ app = dash.Dash(
 app.layout = html.Div(children=[
     html.Div([
         html.H1(children=[
-            'Drive Time Spatial Querying Dashboard',
+            'Drive Time Spatial Analytics Dashboard',
             html.A(
                 html.Img(
                     src="assets/rapids-logo.png",
