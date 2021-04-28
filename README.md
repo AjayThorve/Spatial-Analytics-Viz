@@ -22,7 +22,7 @@ There are 3 main datasets:
 
 - 2010 Census for Population Density, combined with the 2010 ACS for demographics (~2.9 GB) | downloaded on first run
 - US-street data - nodes (~4.4 GB) | needs to be manually downloaded
-- US-street data - edges (highways) (~3.3 GB) | needs to be manually downloaded
+- US-street data - edges (~3.3 GB) | needs to be manually downloaded
 
 For more information on how the Census and ACS data was prepared to show individual points, refer to the `/Data Processing` Directory.
 
@@ -77,7 +77,7 @@ docker run --gpus all -d -p 8050:8050 plotly_demo
 
 ## FAQ and Known Issues
 
-**What hardware do I need to run this locally?** To run you need an NVIDIA GPU with at least 32GB of memory, at least 32GB of system memory, and a Linux OS as defined in the [RAPIDS requirements](https://rapids.ai/start.html#req).
+**What hardware do I need to run this locally?** To run you need an NVIDIA GPU with at least 32GB of memory, and a Linux OS as defined in the [RAPIDS requirements](https://rapids.ai/start.html#req).
 
 **Why is the population data from 2010?** Only census data is recorded on a block level, which provides the highest resolution population distributions available. For more details on census boundaries refer to the [TIGERweb app](https://tigerweb.geo.census.gov/tigerwebmain/TIGERweb_apps.html). 
 
