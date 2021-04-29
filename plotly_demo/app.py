@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import sys
 import cupy
 import cudf
 import dash_leaflet as dl
@@ -743,30 +744,47 @@ def update_plots(
     )
 
 
-def check_dataset(dataset_url, data_path):
+def download(url, filename):
+    with open(filename, 'wb') as f:
+        response = requests.get(url, stream=True)
+        total = response.headers.get('content-length')
+
+        if total is None:
+            f.write(response.content)
+        else:
+            downloaded = 0
+            total = int(total)
+            for data in response.iter_content(
+                chunk_size=max(int(total/1000), 1024*1024)
+            ):
+                downloaded += len(data)
+                f.write(data)
+                done = int(50*downloaded/total)
+                sys.stdout.write('\r[{}{}]'.format(
+                    '█' * done, '.' * (50-done))
+                )
+                sys.stdout.flush()
+    sys.stdout.write('\n')
+
+
+def get_dataset(dataset_url, data_path, tar_format="r:gz"):
     if not os.path.exists(data_path):
-        print(f"Dataset not found at "+data_path+".\n"
+        print(f"Dataset not found at {data_path}.\n"
               f"Downloading from {dataset_url}")
         # Download dataset to data directory
         os.makedirs('../data', exist_ok=True)
-        data_gz_path = data_path.split('/*')[0] + '.tar.gz'
-        with requests.get(dataset_url, stream=True) as r:
-            r.raise_for_status()
-            with open(data_gz_path, 'wb') as f:
-                for chunk in r.iter_content(chunk_size=8192):
-                    if chunk:
-                        f.write(chunk)
+        download(dataset_url, data_path)
+        # with requests.get(dataset_url, stream=True) as r:
+        #     r.raise_for_status()
+        #     with open(data_path, 'wb') as f:
+        #         for chunk in r.iter_content(chunk_size=8192):
+        #             if chunk:
+        #                 f.write(chunk)
 
-        print("Decompressing...")
-        f_in = tarfile.open(data_gz_path, 'r:gz')
-        f_in.extractall('../data')
-
-        print("Deleting compressed file...")
-        os.remove(data_gz_path)
-
-        print('done!')
-    else:
-        print(f"Found dataset at {data_path}")
+    print(f"Decompressing...{data_path}, this might take a while!")
+    f_in = tarfile.open(data_path, tar_format)
+    f_in.extractall('../data')
+    print('done!')
 
 
 census_data = None
@@ -777,14 +795,22 @@ cudf_edges = None
 def load_datasets():
     global census_data, cudf_nodes, cudf_edges
     census_data_url = 'https://s3.us-east-2.amazonaws.com/rapidsai-data/viz-data/census_data.parquet.tar.gz'
-    data_path = "../data/census_data.parquet"
-    check_dataset(census_data_url, data_path)
+    us_street_graph_url = 'https://rapidsai-data.s3.amazonaws.com/viz-data/street-graph-us.tar.xz'
+    census_data_path = "../data/census_data.parquet.tar.gz"
+    us_street_graph_data_path = "../data/street-graph-us.tar.xz"
 
+    census_path = "../data/census_data.parquet"
     nodes_path = "../data/us-nodes.parquet"
     edges_path = "../data/us-edges.parquet"
 
+    # check if datasets are downloaded, and if not, download and extract them
+    if not os.path.exists(census_path):
+        get_dataset(census_data_url, census_data_path)
+    if not (os.path.exists(nodes_path) and os.path.exists(edges_path)):
+        get_dataset(us_street_graph_url, us_street_graph_data_path, "r:xz")
+
     # cudf DataFrame
-    census_data = dask_cudf.read_parquet(data_path)
+    census_data = dask_cudf.read_parquet(census_path)
     cudf_nodes = cudf.read_parquet(nodes_path)
     cudf_edges = cudf.read_parquet(edges_path)
 

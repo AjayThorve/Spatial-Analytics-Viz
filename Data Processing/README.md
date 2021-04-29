@@ -2,7 +2,7 @@
 
 For generating the US-street map data, we use the Open Street Maps api to download nodes and edges for each state, and then merge them together. 
 
-The data us-streets(nodes and edges), can be manually downloaded from [here](https://drive.google.com/file/d/1FiKczglJaLmLjYNCjuTVd11JxpglKA63/view?usp=sharing) (Nvidia email access required).
+The graph data for us-streets(nodes and edges) is automatically downloaded and extracted on the first run.
 
 Steps to reproduce dataset generation: 
 

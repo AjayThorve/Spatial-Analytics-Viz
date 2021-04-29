@@ -10,7 +10,7 @@ The visualization uses a Jawg map base layer that requires an access token. Crea
 **NOTE:** Without the token, application will fall back to the free open-street-map tiles.
 
 ## Datasets
-The graph data for us-streets(nodes and edges), needs to be manually downloaded from [here](https://drive.google.com/file/d/1FiKczglJaLmLjYNCjuTVd11JxpglKA63/view?usp=sharing) (Nvidia email account needed for download) and extracted to `./data` directory.
+The graph data for us-streets(nodes and edges), and the census data is automatically downloaded and extracted on the first run.
 
 
 ## Running the Visualization App
@@ -21,8 +21,8 @@ You can setup and run the visualization with the conda or docker commands below.
 There are 3 main datasets:
 
 - 2010 Census for Population Density, combined with the 2010 ACS for demographics  (~2.9 GB) | downloaded on first run
-- US-street data - nodes (~4.4 GB) | needs to be manually downloaded
-- US-street data - edges (highways) (~3.3 GB) | needs to be manually downloaded
+- US-street data - nodes (~4.4 GB) | downloaded on first run
+- US-street data - edges (highways) (~3.3 GB) | downloaded on first run
 
 For more information on how the Census and ACS data was prepared to show individual points, refer to the `/Data Processing` Directory.
 
