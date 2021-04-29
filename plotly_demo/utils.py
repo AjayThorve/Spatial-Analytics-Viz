@@ -109,7 +109,6 @@ def get_shortest_paths(edges_df, point_of_interest):
     G_gpu.from_cudf_edgelist(
         edges_df, source='src', destination='dst', edge_attr='time'
     )
-    print(point_of_interest, G_gpu)
     shortest_paths = cugraph.traversal.sssp(G_gpu, point_of_interest)
     shortest_paths = shortest_paths.drop('predecessor', axis=1)
     shortest_paths.columns = ['time', 'vertex']
