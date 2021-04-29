@@ -438,6 +438,13 @@
     cursor: pointer;
   }
   
+  .info{
+    background: rgba(255,255,255,0.75);
+  }
+  
+  .Select-control{
+    background-color:rgba(255, 255, 255, 0.3);
+  }
   
   /* Modal info layer
   –––––––––––––––––––––––––––––––––––––––––––––––––– */

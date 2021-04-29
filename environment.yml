@@ -1,19 +1,19 @@
-name: spatial_rapids_viz
+name: rapids_spatial_viz
 channels:
   - rapidsai
   - plotly
   - conda-forge
   - defaults
 dependencies:
-  - python=3.7
+  - python=3.8
   - plotly=4.14
-  - cudf=0.18
-  - cuspatial=0.18
-  - cugraph=0.18
+  - cudf=0.19
+  - cuspatial=0.19
+  - cugraph=0.19
   - dash
   - dask
-  - dask-cuda=0.18
-  - dask-cudf=0.18
+  - dask-cuda=0.19
+  - dask-cudf=0.19
   - cudatoolkit=11.0
   - dash-daq
   - dash-bootstrap-components
