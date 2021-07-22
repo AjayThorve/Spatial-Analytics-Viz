@@ -25,3 +25,4 @@ dependencies:
   - pip:
     - dash-leaflet
     - dash-extensions
+    - pyrosm
