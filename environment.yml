@@ -7,13 +7,13 @@ channels:
 dependencies:
   - python=3.8
   - plotly=4.14
-  - cudf=0.19
-  - cuspatial=0.19
-  - cugraph=0.19
+  - cudf
+  - cuspatial
+  - cugraph
   - dash
   - dask
-  - dask-cuda=0.19
-  - dask-cudf=0.19
+  - dask-cuda
+  - dask-cudf
   - cudatoolkit=11.0
   - dash-daq
   - dash-bootstrap-components
