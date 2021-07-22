@@ -5,6 +5,10 @@ DATA_DIR = "../data/"
 from constants import regions
 
 
+regions.reverse()
+
+regions = regions[50:]
+
 failed_regions = []
 for region in regions:
     if not(pathlib.Path(f"{DATA_DIR}{region}-nodes.parquet").is_file() and pathlib.Path(f"{DATA_DIR}{region}-nodes.parquet").is_file()):
