@@ -1,25 +1,25 @@
 import cudf
-from constants import list_of_states
+from constants import regions
 
 nodes_df = []
 edges_df = []
 DATA_DIR = "../data/"
 
-# read all states' parquet files and load them as list[cudf.DataFrames]
-for state in list_of_states:
-    nodes_df.append(cudf.read_parquet(f"{DATA_DIR}{state}-nodes.parquet"))
-    edges_df.append(cudf.read_parquet(f"{DATA_DIR}{state}-edges.parquet"))
+# read all regions' parquet files and load them as list[cudf.DataFrames]
+for region in regions:
+    nodes_df.append(cudf.read_parquet(f"{DATA_DIR}{region}-nodes.parquet"))
+    edges_df.append(cudf.read_parquet(f"{DATA_DIR}{region}-edges.parquet"))
 
 # process nodes
-# concat all states' dataframes
+# concat each region's dataframes
 nodes = cudf.concat(nodes_df)
 # delete the original list of dataframes to avoid GPU OOM issues
 del(nodes_df)
-nodes.to_parquet(f"{DATA_DIR}us-nodes.parquet")
+nodes.to_parquet(f"{DATA_DIR}eu-nodes.parquet")
 
 # process edges
-# concat all states' dataframes
+# concat each region's dataframes
 edges = cudf.concat(edges_df)
 # delete the original list of dataframes to avoid GPU OOM issues
 del(edges_df)
-edges.to_parquet(f"{DATA_DIR}us-edges.parquet")
+edges.to_parquet(f"{DATA_DIR}eu-edges.parquet")
